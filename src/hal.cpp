@@ -7,6 +7,8 @@ HAL::HAL() {
     interruptController_ = new InterruptHandler();
     contextSwitcher_ = new ContextSwitcher();
     mpuDriver_ = new MPUDriver();
+    timerDriver_ = new TimerDriver();
+    uartDriver_ = new UARTDriver();
 }
 
 HAL::~HAL() {
@@ -14,20 +16,32 @@ HAL::~HAL() {
     delete interruptController_;
     delete contextSwitcher_;
     delete mpuDriver_;
+    delete timerDriver_;
+    delete uartDriver_;
 }
 
 bool HAL::initialize() {
     Logger::getInstance().info("HAL: Initializing hardware abstraction layer components...");
 
-    // Initialize MPU. In a production environment, you might want to
-    // check for additional hardware components.
+    // Initialize MPU.
     if (!mpuDriver_->initialize()) {
         Logger::getInstance().error("HAL: MPU initialization failed.");
         return false;
     }
-    // Configure and enforce MPU regions as needed.
     mpuDriver_->configureRegion(0x20000000, 0x1000, 0x03);
     mpuDriver_->enforceMemoryProtection();
+
+    // Initialize Timer Driver.
+    if (!timerDriver_->initialize()) {
+        Logger::getInstance().error("HAL: TimerDriver initialization failed.");
+        return false;
+    }
+
+    // Initialize UART Driver.
+    if (!uartDriver_->initialize()) {
+        Logger::getInstance().error("HAL: UARTDriver initialization failed.");
+        return false;
+    }
 
     Logger::getInstance().info("HAL: All components initialized successfully.");
     return true;
@@ -43,6 +57,14 @@ ContextSwitcher& HAL::getContextSwitcher() {
 
 MPUDriver& HAL::getMPUDriver() {
     return *mpuDriver_;
+}
+
+TimerDriver& HAL::getTimerDriver() {
+    return *timerDriver_;
+}
+
+UARTDriver& HAL::getUARTDriver() {
+    return *uartDriver_;
 }
 
 void HAL::triggerInterrupt(int interruptNumber) {
