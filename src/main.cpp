@@ -4,18 +4,21 @@
 #include "scheduler.hpp"
 #include "allocator.hpp"
 #include "task.hpp"
+#include "logger.hpp"
 
-#include <iostream>
 #include <thread>
 #include <chrono>
+#include <string>
 
 int main() {
-    std::cout << "Real-Time Operating System Simulation Starting..." << std::endl;
+    // Configure the logger subsystem.
+    Logger::getInstance().setLogLevel(LogLevel::DEBUG);
+    Logger::getInstance().setLogFile("rtos.log");
+    Logger::getInstance().info("Real-Time Operating System Simulation Starting...");
 
     // --- MPU Driver ---
     MPUDriver mpu;
     if (mpu.initialize()) {
-        // Example: Configure one MPU region.
         mpu.configureRegion(0x20000000, 0x1000, 0x03);
         mpu.enforceMemoryProtection();
     }
@@ -23,10 +26,10 @@ int main() {
     // --- Interrupt Handler ---
     InterruptHandler ih;
     ih.registerInterrupt(1, [](){
-        std::cout << "Handling interrupt 1: Timer tick." << std::endl;
+        Logger::getInstance().info("Handling interrupt 1: Timer tick.");
     });
     ih.registerInterrupt(2, [](){
-        std::cout << "Handling interrupt 2: External event." << std::endl;
+        Logger::getInstance().info("Handling interrupt 2: External event.");
     });
     
     // Simulate triggering of interrupts.
@@ -51,8 +54,7 @@ int main() {
         task.basePriority = 10 - i;  // Higher value means higher priority.
         task.currentPriority = task.basePriority;
         task.taskFunction = [i](){
-            std::cout << "Executing Task " << i << " logic..." << std::endl;
-            // Simulate some processing time.
+            Logger::getInstance().info("Executing Task " + std::to_string(i) + " logic...");
             std::this_thread::sleep_for(std::chrono::microseconds(30));
         };
         scheduler.addTask(task);
@@ -68,6 +70,6 @@ int main() {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     scheduler.stop();
 
-    std::cout << "Simulation ending." << std::endl;
+    Logger::getInstance().info("RTOS Simulation Ending.");
     return 0;
 }

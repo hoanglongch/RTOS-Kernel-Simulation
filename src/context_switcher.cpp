@@ -1,6 +1,7 @@
 #include "context_switcher.hpp"
-#include <iostream>
+#include "logger.hpp"
 #include <cstdlib>
+#include <sstream>
 
 ContextSwitcher::ContextSwitcher() {
     // Initialization if needed
@@ -16,17 +17,18 @@ void ContextSwitcher::saveContext(CPUContext& context) {
         reg = rand();
     }
     context.cpsr = rand();
-    std::cout << "Context saved." << std::endl;
+    Logger::getInstance().info("Context saved.");
 }
 
 void ContextSwitcher::restoreContext(const CPUContext& context) {
-    // In a real OS, CPU registers would be restored. Here we just print them.
-    std::cout << "Restoring context:" << std::endl;
+    std::ostringstream oss;
+    oss << "Restoring context:\n";
     for (size_t i = 0; i < context.registers.size(); i++) {
-        std::cout << "R" << i << ": " << context.registers[i] << " ";
+        oss << "R" << i << ": " << context.registers[i] << " ";
         if (i % 4 == 3) {
-            std::cout << std::endl;
+            oss << "\n";
         }
     }
-    std::cout << "CPSR: " << context.cpsr << std::endl;
+    oss << "CPSR: " << context.cpsr;
+    Logger::getInstance().info(oss.str());
 }

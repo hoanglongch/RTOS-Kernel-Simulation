@@ -8,3 +8,10 @@ include_directories(include)
 file(GLOB SRC_FILES "src/*.cpp")
 
 add_executable(RealtimeOS ${SRC_FILES})
+
+
+# Optionally enable tests if requested
+option(BUILD_TESTS "Build tests" ON)
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
