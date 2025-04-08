@@ -1,10 +1,8 @@
-#include "interrupt_handler.hpp"
-#include "context_switcher.hpp"
-#include "mpu_driver.hpp"
-#include "scheduler.hpp"
-#include "allocator.hpp"
-#include "task.hpp"
+#include "hal.hpp"
 #include "logger.hpp"
+#include "scheduler.hpp"
+#include "task.hpp"
+#include "allocator.hpp"
 
 #include <thread>
 #include <chrono>
@@ -14,33 +12,31 @@ int main() {
     // Configure the logger subsystem.
     Logger::getInstance().setLogLevel(LogLevel::DEBUG);
     Logger::getInstance().setLogFile("rtos.log");
-    Logger::getInstance().info("Real-Time Operating System Simulation Starting...");
+    Logger::getInstance().info("RTOS Simulation Starting via HAL...");
 
-    // --- MPU Driver ---
-    MPUDriver mpu;
-    if (mpu.initialize()) {
-        mpu.configureRegion(0x20000000, 0x1000, 0x03);
-        mpu.enforceMemoryProtection();
+    // --- Initialize the Hardware Abstraction Layer (HAL) ---
+    HAL hal;
+    if (!hal.initialize()) {
+        Logger::getInstance().error("HAL initialization failed. Exiting...");
+        return -1;
     }
 
-    // --- Interrupt Handler ---
-    InterruptHandler ih;
-    ih.registerInterrupt(1, [](){
-        Logger::getInstance().info("Handling interrupt 1: Timer tick.");
+    // --- Interrupt Handler via HAL ---
+    hal.getInterruptHandler().registerInterrupt(1, [](){
+        Logger::getInstance().info("HAL: Handling interrupt 1: Timer tick.");
     });
-    ih.registerInterrupt(2, [](){
-        Logger::getInstance().info("Handling interrupt 2: External event.");
+    hal.getInterruptHandler().registerInterrupt(2, [](){
+        Logger::getInstance().info("HAL: Handling interrupt 2: External event.");
     });
     
-    // Simulate triggering of interrupts.
-    ih.triggerInterrupt(1);
-    ih.triggerInterrupt(2);
+    // Simulate triggering of interrupts via HAL.
+    hal.triggerInterrupt(1);
+    hal.triggerInterrupt(2);
 
-    // --- Context Switcher ---
-    ContextSwitcher cs;
+    // --- Context Switcher via HAL ---
     CPUContext context;
-    cs.saveContext(context);
-    cs.restoreContext(context);
+    hal.getContextSwitcher().saveContext(context);
+    hal.getContextSwitcher().restoreContext(context);
 
     // --- Scheduler Setup ---
     Scheduler scheduler;
@@ -53,7 +49,7 @@ int main() {
         task.name = "Task_" + std::to_string(i);
         task.basePriority = 10 - i;  // Higher value means higher priority.
         task.currentPriority = task.basePriority;
-        task.taskFunction = [i](){
+        task.taskFunction = [i]() {
             Logger::getInstance().info("Executing Task " + std::to_string(i) + " logic...");
             std::this_thread::sleep_for(std::chrono::microseconds(30));
         };
