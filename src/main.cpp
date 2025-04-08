@@ -91,6 +91,13 @@ int main() {
     // Dump the current page table for debugging.
     Logger::getInstance().debug(hal.getVirtualMemoryManager().dumpPageTable());
 
+    // --- Network Driver Usage via HAL ---
+    // Send a simulated network packet.
+    hal.getNetworkDriver().sendPacket("Hello from RTOS!");
+    // Receive a simulated network packet.
+    std::string packet = hal.getNetworkDriver().receivePacket();
+    Logger::getInstance().info("Main: Received packet: " + packet);
+
     // --- Allow the scheduler to run for a short period ---
     std::this_thread::sleep_for(std::chrono::seconds(1));
     scheduler.stop();

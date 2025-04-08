@@ -8,7 +8,8 @@
 #include "mpu_driver.hpp"
 #include "timer_driver.hpp"
 #include "uart_driver.hpp"
-#include "virtual_memory_manager.hpp"  // New include for advanced memory management
+#include "virtual_memory_manager.hpp"
+#include "network_driver.hpp"   // New include for NetworkDriver
 
 // The HAL class abstracts hardware-specific functions including interrupt management,
 // context switching, memory protection, additional device drivers, and advanced memory management.
@@ -27,7 +28,8 @@ public:
     MPUDriver& getMPUDriver();
     TimerDriver& getTimerDriver();
     UARTDriver& getUARTDriver();
-    VirtualMemoryManager& getVirtualMemoryManager();  // New accessor
+    VirtualMemoryManager& getVirtualMemoryManager();
+    NetworkDriver& getNetworkDriver(); // New accessor for NetworkDriver
 
     // Trigger an interrupt via the HAL.
     void triggerInterrupt(int interruptNumber);
@@ -38,7 +40,8 @@ private:
     MPUDriver* mpuDriver_;
     TimerDriver* timerDriver_;
     UARTDriver* uartDriver_;
-    VirtualMemoryManager* vmm_;  // Virtual Memory Manager
+    VirtualMemoryManager* vmm_;
+    NetworkDriver* networkDriver_;  // New pointer for NetworkDriver
 };
 
 #endif // HAL_HPP

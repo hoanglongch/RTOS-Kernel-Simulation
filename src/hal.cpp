@@ -9,7 +9,8 @@ HAL::HAL() {
     mpuDriver_           = new MPUDriver();
     timerDriver_         = new TimerDriver();
     uartDriver_          = new UARTDriver();
-    vmm_                 = new VirtualMemoryManager();  // New instance for advanced memory management.
+    vmm_                 = new VirtualMemoryManager();
+    networkDriver_       = new NetworkDriver(); // Instantiate the network driver.
 }
 
 HAL::~HAL() {
@@ -19,6 +20,7 @@ HAL::~HAL() {
     delete timerDriver_;
     delete uartDriver_;
     delete vmm_;
+    delete networkDriver_;  // Clean up the network driver.
 }
 
 bool HAL::initialize() {
@@ -50,6 +52,12 @@ bool HAL::initialize() {
         return false;
     }
 
+    // Initialize Network Driver.
+    if (!networkDriver_->initialize()) {
+        Logger::getInstance().error("HAL: NetworkDriver initialization failed.");
+        return false;
+    }
+
     Logger::getInstance().info("HAL: All components initialized successfully.");
     return true;
 }
@@ -76,6 +84,10 @@ UARTDriver& HAL::getUARTDriver() {
 
 VirtualMemoryManager& HAL::getVirtualMemoryManager() {
     return *vmm_;
+}
+
+NetworkDriver& HAL::getNetworkDriver() {
+    return *networkDriver_;
 }
 
 void HAL::triggerInterrupt(int interruptNumber) {
