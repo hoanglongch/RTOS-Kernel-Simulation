@@ -3,21 +3,22 @@
 #include <string>
 
 HAL::HAL() {
-    // Create module instances.
+    // Create instances for each component.
     interruptController_ = new InterruptHandler();
-    contextSwitcher_ = new ContextSwitcher();
-    mpuDriver_ = new MPUDriver();
-    timerDriver_ = new TimerDriver();
-    uartDriver_ = new UARTDriver();
+    contextSwitcher_     = new ContextSwitcher();
+    mpuDriver_           = new MPUDriver();
+    timerDriver_         = new TimerDriver();
+    uartDriver_          = new UARTDriver();
+    vmm_                 = new VirtualMemoryManager();  // New instance for advanced memory management.
 }
 
 HAL::~HAL() {
-    // Clean up resources.
     delete interruptController_;
     delete contextSwitcher_;
     delete mpuDriver_;
     delete timerDriver_;
     delete uartDriver_;
+    delete vmm_;
 }
 
 bool HAL::initialize() {
@@ -43,6 +44,12 @@ bool HAL::initialize() {
         return false;
     }
 
+    // Initialize Virtual Memory Manager.
+    if (!vmm_->initialize()) {
+        Logger::getInstance().error("HAL: VirtualMemoryManager initialization failed.");
+        return false;
+    }
+
     Logger::getInstance().info("HAL: All components initialized successfully.");
     return true;
 }
@@ -65,6 +72,10 @@ TimerDriver& HAL::getTimerDriver() {
 
 UARTDriver& HAL::getUARTDriver() {
     return *uartDriver_;
+}
+
+VirtualMemoryManager& HAL::getVirtualMemoryManager() {
+    return *vmm_;
 }
 
 void HAL::triggerInterrupt(int interruptNumber) {
