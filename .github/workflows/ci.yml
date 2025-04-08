@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+# Trigger the workflow on pushes and pull requests to the main branch.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Install dependencies including cmake, build-essential, and GoogleTest
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential libgtest-dev clang-tidy
+          # Build GoogleTest libraries (if not provided by the system)
+          cd /usr/src/gtest
+          sudo cmake .
+          sudo make
+          sudo cp *.a /usr/lib
+          cd -
+
+      # Configure the build with CMake
+      - name: Configure CMake
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Debug
+
+      # Build the project
+      - name: Build Project
+        run: |
+          cd build
+          make -j$(nproc)
+
+      # Run Unit Tests with CTest
+      - name: Run Unit Tests
+        run: |
+          cd build
+          ctest --output-on-failure
+
+      # (Optional) Run Static Analysis using clang-tidy
+      - name: Run Static Analysis
+        run: |
+          cd build
+          # Customize the below line to target specific files or directories.
+          clang-tidy ../src/*.cpp -- -I../include

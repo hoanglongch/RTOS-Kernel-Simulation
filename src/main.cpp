@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <string>
+#include <cstdint>
 
 int main() {
     // Configure the logger subsystem.
@@ -20,7 +21,7 @@ int main() {
         Logger::getInstance().error("HAL initialization failed. Exiting...");
         return -1;
     }
-
+    
     // --- Interrupt Handler via HAL ---
     hal.getInterruptHandler().registerInterrupt(1, [](){
         Logger::getInstance().info("HAL: Handling interrupt 1: Timer tick.");
@@ -62,7 +63,35 @@ int main() {
     // (Simulated usage of allocated memory)
     NUMAAllocator::deallocate(buffer, bufferSize);
 
-    // Allow the scheduler to run for a short period.
+    // --- Virtual Memory Manager Usage via HAL ---
+    // Map a region:
+    //   Virtual Address: 0x40000000
+    //   Physical Address: 0x80000000
+    //   Size: 4096 bytes
+    //   Permissions: READ | WRITE
+    if (hal.getVirtualMemoryManager().mapRegion(0x40000000, 0x80000000, 4096, 
+            MemoryPermissions::READ | MemoryPermissions::WRITE)) {
+        Logger::getInstance().info("Mapped virtual region 0x40000000 successfully.");
+    }
+
+    // Translate a valid virtual address within the mapped region.
+    uint32_t physicalAddress;
+    if (hal.getVirtualMemoryManager().translateAddress(0x40000010, physicalAddress)) {
+        Logger::getInstance().info("Translated virtual address 0x40000010 to physical address: 0x" +
+            std::to_string(physicalAddress));
+    } else {
+        hal.getVirtualMemoryManager().handlePageFault(0x40000010);
+    }
+
+    // Attempt to translate an unmapped virtual address to trigger a page fault.
+    if (!hal.getVirtualMemoryManager().translateAddress(0x50000000, physicalAddress)) {
+        hal.getVirtualMemoryManager().handlePageFault(0x50000000);
+    }
+
+    // Dump the current page table for debugging.
+    Logger::getInstance().debug(hal.getVirtualMemoryManager().dumpPageTable());
+
+    // --- Allow the scheduler to run for a short period ---
     std::this_thread::sleep_for(std::chrono::seconds(1));
     scheduler.stop();
 
