@@ -69,3 +69,51 @@ This project is a robust simulation of an RTOS implemented in C++. It demonstrat
 
 - **CI/CD Integration:**  
   GitHub Actions pipeline for automated builds and tests.
+
+
+## Prerequisites
+
+- **CMake**: Version 3.10 or later.
+- **C++ Compiler**: GCC, Clang, or compatible (supporting C++17).
+- **GoogleTest**: Installed via `libgtest-dev` package or built from source.
+- **Operating System**: Ubuntu or compatible Linux distro  
+  *(The CI pipeline is configured for Ubuntu)*
+
+---
+
+## Build Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/RTOS.git
+cd RTOS
+```
+### 2. Create a Build Directory and Run CMake
+```bash
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+```
+### 3. Compile the Project
+```bash
+make -j$(nproc)
+```
+### 4. Run the Executable
+```bash
+./RTOS   # or the generated executable name
+```
+
+## Usage
+
+The main executable simulates various RTOS components:
+
+- Initializes the Hardware Abstraction Layer (HAL)
+- Sets up and triggers interrupts
+- Simulates context switching
+- Schedules and executes tasks
+- Uses a NUMA-aware memory allocator
+- Demonstrates virtual memory mapping and translation with the Virtual Memory Manager
+- Interacts with simulated device drivers (Timer, UART, Network)
+
+Check rtos.log for runtime logging and debug information.
