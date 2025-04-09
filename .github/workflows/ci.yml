@@ -16,16 +16,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Install dependencies including cmake, build-essential, and GoogleTest
+            # Install dependencies including cmake, build-essential, and GoogleTest
       - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake build-essential libgtest-dev clang-tidy
-          # Build GoogleTest libraries (if not provided by the system)
-          cd /usr/src/gtest
-          sudo cmake .
+          # Build GoogleTest libraries from /usr/src/googletest
+          cd /usr/src/googletest
+          sudo mkdir -p build
+          cd build
+          sudo cmake ..
           sudo make
-          sudo cp *.a /usr/lib
+          # Copy the built static libraries from the lib directory
+          sudo cp lib/libgtest*.a /usr/lib/
           cd -
 
       # Configure the build with CMake
